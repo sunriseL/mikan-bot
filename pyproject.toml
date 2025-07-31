@@ -1,0 +1,17 @@
+[project]
+name = "mikan"
+version = "0.1.0"
+description = "mikan"
+readme = "README.md"
+requires-python = ">=3.9, <4.0"
+
+[tool.nonebot]
+adapters = [
+    { name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11" }
+]
+# plugins = ["nonebot_plugin_randpic", "nonebot_plugin_apscheduler", "nonebot_plugin_deepseek", "nonebot_bison", "nonebot_plugin_alconna", "nonebot_plugin_ollama"]
+# plugins = ["nonebot_plugin_randpic", "nonebot_plugin_apscheduler", "nonebot_plugin_deepseek", "nonebot_bison", "nonebot_plugin_alconna", "nonebot_plugin_marshoai", "nonebot_plugin_chatgpt_turbo"]
+plugins = ["nonebot_plugin_apscheduler", "nonebot_bison", "nonebot_plugin_alconna",  "nonebot_plugin_htmlrender", "nonebot_plugin_roll"]
+# plugins = ["nonebot_plugin_randpic", "nonebot_plugin_apscheduler", "nonebot_bison", "nonebot_plugin_alconna"]
+plugin_dirs = ["src/plugins"]
+builtin_plugins = []

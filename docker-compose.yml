@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  mikan-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mikan-bot
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./.env:/app/.env:ro
+    environment:
+      # NoneBot2 配置
+      - ENVIRONMENT=prod
+      - HOST=0.0.0.0
+      - PORT=8080
+      - DEBUG=false
+      
+      # 数据库配置
+      - DATABASE_URL=sqlite:///data/bot.db
+      
+      # 日志配置
+      - LOG_LEVEL=INFO
+      - LOG_FILE=/app/logs/bot.log
+      
+      # 时区设置
+      - TZ=Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s 

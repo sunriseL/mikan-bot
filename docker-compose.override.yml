@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  mikan-bot:
+    volumes:
+      - ./src:/app/src:ro  # 开发时挂载源码目录
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG 
