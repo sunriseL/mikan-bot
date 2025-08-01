@@ -178,7 +178,8 @@ async def msg_handle(event: GroupMessageEvent):
         await msg.finish('当前还没有图片!')
     
     file_name = data[0]
-    img = randpic_path / file_name
+    # 使用pathlib处理路径，确保跨平台兼容性
+    img = randpic_path / Path(file_name)
     with open(img, "rb") as f:
         file_content = f.read()
         encoded_content = base64.b64encode(file_content)
@@ -356,8 +357,10 @@ async def add_pic(state: T_State, pic_list: Message = Arg('pic')):
             try:
                 with file_path.open("wb") as f:
                     f.write(data)
+                # 使用正斜杠确保跨平台兼容性
+                db_path = f"{command}/{file_name}".replace("\\", "/")
                 await cursor.execute(f'insert or replace into Pic_of_{command}(md5, img_url) values (?, ?)',
-                                   (fmd5, str(Path() / command / file_name)))
+                                   (fmd5, db_path))
                 await connection.commit()
                 succ_count += 1
             except Exception as e:
