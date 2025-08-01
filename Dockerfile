@@ -30,7 +30,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     nb plugin install nonebot_plugin_alconna && \
     nb plugin install nonebot_plugin_htmlrender && \
     nb plugin install nonebot_plugin_roll && \
-    pip install --no-cache-dir openai httpx pandas
+    pip install --no-cache-dir openai httpx
 
 # 创建数据目录
 RUN mkdir -p /app/data /app/logs
