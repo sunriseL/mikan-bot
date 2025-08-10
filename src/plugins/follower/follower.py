@@ -432,6 +432,82 @@ async def handle_get_stats(event: MessageEvent):
         logger.error(f"Unexpected error in get stats handler: {e}")
         await get_stats.finish(f"出错了：{str(e)}")
 
+# 注册指令：生成比较图表
+generate_comparison_chart = on_command("compare_chart", aliases={"比较图表", "对比图表"}, priority=5)
+
+@generate_comparison_chart.handle()
+async def handle_generate_comparison_chart(event: MessageEvent, args: Message = CommandArg()):
+    """处理比较图表生成"""
+    # 解析指令参数
+    arg_text = args.extract_plain_text().strip()
+    
+    if not arg_text:
+        await generate_comparison_chart.finish(
+            "用法：/比较图表 用户列表 [起始日期]\n"
+            "例如：/比较图表 twitter:kohinatamika,instagram:kohinata_mika\n"
+            "例如：/比较图表 twitter:kohinatamika,instagram:kohinata_mika 2024-01-01\n"
+            "用户格式：platform1:username1,platform2:username2\n"
+            "日期格式：YYYY-MM-DD（可选，默认30天前）\n"
+            "支持平台：twitter, instagram"
+        )
+    
+    # 解析参数
+    parts = arg_text.split()
+    users_param = parts[0]
+    
+    # 检查日期参数
+    if len(parts) > 1:
+        start_date = parts[1]
+        # 验证日期格式
+        try:
+            from datetime import datetime
+            datetime.strptime(start_date, "%Y-%m-%d")
+        except ValueError:
+            await generate_comparison_chart.finish("日期格式错误，请使用 YYYY-MM-DD 格式")
+    else:
+        # 默认使用30天前的日期
+        from datetime import datetime, timedelta
+        start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+    
+    # 验证用户参数格式
+    if "," not in users_param:
+        await generate_comparison_chart.finish(
+            "用户参数格式错误，请使用：platform1:username1,platform2:username2\n"
+            "例如：twitter:kohinatamika,instagram:kohinata_mika"
+        )
+    
+    try:
+        # 调用外部 API 生成比较图表
+        logger.info(f"Generating comparison chart for users: {users_param}, start_date: {start_date}")
+        
+        # 构建查询参数
+        params = {
+            "start_date": start_date,
+            "users": users_param
+        }
+        
+        # 构建查询字符串
+        query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+        endpoint = f"/api/compare/chart?{query_string}"
+        
+        # 图表API直接返回图片数据
+        chart_response = await call_api(endpoint, return_json=False)
+        
+        if chart_response and chart_response.get("content"):
+            # 将二进制图片数据转换为base64
+            import base64
+            image_data = base64.b64encode(chart_response["content"]).decode()
+            await generate_comparison_chart.send(MessageSegment.image(f"base64://{image_data}"))
+        else:
+            await generate_comparison_chart.finish("比较图表生成失败")
+
+    except FinishedException:
+        # 正常结束，不需要处理
+        pass
+    except Exception as e:
+        logger.error(f"Unexpected error in generate comparison chart handler: {e}")
+        await generate_comparison_chart.finish(f"出错了：{str(e)}")
+
 # 注册指令：帮助
 follower_help = on_command("follower_help", aliases={"粉丝帮助"}, priority=5)
 
@@ -451,6 +527,7 @@ async def handle_follower_help(event: MessageEvent):
 • /粉丝数据 [平台] [用户名] [数量] - 查看粉丝数据
 • /最新粉丝 - 查看最新粉丝数据
 • /生成图表 平台 用户名 - 生成粉丝趋势图表
+• /比较图表 用户列表 [起始日期] - 生成多用户增长比较图表
 
 系统操作：
 • /手动抓取 平台 [用户名] - 手动触发数据抓取
@@ -466,6 +543,8 @@ async def handle_follower_help(event: MessageEvent):
 • /用户列表
 • /粉丝数据 twitter kohinatamika 5
 • /生成图表 instagram kohinata_mika
+• /比较图表 twitter:kohinatamika,instagram:kohinata_mika
+• /比较图表 twitter:kohinatamika,instagram:kohinata_mika 2024-01-01
 • /手动抓取 twitter
 """
     await follower_help.finish(help_text)
